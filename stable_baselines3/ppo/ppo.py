@@ -107,6 +107,7 @@ class PPO(OnPolicyAlgorithm):
         seed: Optional[int] = None,
         device: Union[th.device, str] = "auto",
         _init_setup_model: bool = True,
+        mpc=None,
     ):
         super().__init__(
             policy,

@@ -42,7 +42,38 @@ from stable_baselines3.common.utils import (
     obs_as_tensor,
 )
 
+from acados_template import (
+    AcadosOcp,
+    AcadosOcpSolver,
+    AcadosOcpConstraints,
+    AcadosOcpCost,
+    AcadosOcpDims,
+    AcadosModel,
+    AcadosOcpOptions,
+)
+
 SelfBaseModel = TypeVar("SelfBaseModel", bound="BaseModel")
+
+
+class MPC(ABC):
+    """
+    MPC abstract base class.
+    """
+
+    _ocp: AcadosOcp
+    _ocp_solver: AcadosOcpSolver
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def get_action(self, observation: np.ndarray) -> np.ndarray:
+        """
+        Get the action from the MPC.
+
+        :param observation: the input observation
+        :return: the action
+        """
 
 
 class BaseModel(nn.Module):
@@ -1036,6 +1067,7 @@ class ContinuousCritic(BaseModel):
 
 
 class MPCActorCriticPolicy(BasePolicy):
+    mpc: MPC
     optimizer: th.optim.Optimizer
 
     def __init__(
@@ -1043,8 +1075,7 @@ class MPCActorCriticPolicy(BasePolicy):
         observation_space: spaces.Space,
         action_space: spaces.Space,
         lr_schedule: Schedule,
-        # net_arch: Optional[Union[List[int], Dict[str, List[int]]]] = None,
-        acados_model: Optional[Union[List[int], Dict[str, List[int]]]] = None,
+        mpc: MPC,
         activation_fn: Type[nn.Module] = nn.Tanh,
         ortho_init: bool = True,
         use_sde: bool = False,
@@ -1076,11 +1107,20 @@ class MPCActorCriticPolicy(BasePolicy):
             normalize_images=normalize_images,
         )
 
-        # Usually net architecture. We need acados models (or other acados objects) here.
+        self.mpc = mpc
 
-        # self.acados_model = acados_model
+        print("MPCActorCriticPolicy initialized")
 
-    def _predict(
-        self, observation: th.Tensor, deterministic: bool = False
-    ) -> th.Tensor:
-        raise NotImplementedError
+    def _predict(self, observation: th.Tensor, deterministic: bool = True) -> th.Tensor:
+        # Assume that the observation is the state.
+
+        # Convert observation to numpy array
+        observation = observation.cpu().numpy().reshape(-1)
+
+        # Get the action from the MPC
+        action = self.mpc.get_action(observation)
+
+        # Convert action to tensor
+        action = th.tensor(action, dtype=th.float32)
+
+        return action
