@@ -289,8 +289,14 @@ class OnPolicyAlgorithm(BaseAlgorithm):
                 fps = int((self.num_timesteps - self._num_timesteps_at_start) / time_elapsed)
                 self.logger.record("time/iterations", iteration, exclude="tensorboard")
                 if len(self.ep_info_buffer) > 0 and len(self.ep_info_buffer[0]) > 0:
-                    self.logger.record("rollout/ep_rew_mean", safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]))
-                    self.logger.record("rollout/ep_len_mean", safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]))
+                    self.logger.record(
+                        "rollout/ep_rew_mean",
+                        safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]),
+                    )
+                    self.logger.record(
+                        "rollout/ep_len_mean",
+                        safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]),
+                    )
                 self.logger.record("time/fps", fps)
                 self.logger.record("time/time_elapsed", int(time_elapsed), exclude="tensorboard")
                 self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")

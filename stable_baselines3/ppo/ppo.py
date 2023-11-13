@@ -8,9 +8,16 @@ from torch.nn import functional as F
 
 from stable_baselines3.common.buffers import RolloutBuffer
 from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
-from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, BasePolicy, MultiInputActorCriticPolicy
+from stable_baselines3.common.policies import (
+    ActorCriticCnnPolicy,
+    ActorCriticPolicy,
+    BasePolicy,
+    MultiInputActorCriticPolicy,
+)
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
+
+from rlmpc.common.policies import MPCActorCriticPolicy
 
 SelfPPO = TypeVar("SelfPPO", bound="PPO")
 
@@ -75,6 +82,7 @@ class PPO(OnPolicyAlgorithm):
         "MlpPolicy": ActorCriticPolicy,
         "CnnPolicy": ActorCriticCnnPolicy,
         "MultiInputPolicy": MultiInputActorCriticPolicy,
+        "ModelPredictiveControlPolicy": MPCActorCriticPolicy,
     }
 
     def __init__(
@@ -105,6 +113,7 @@ class PPO(OnPolicyAlgorithm):
         seed: Optional[int] = None,
         device: Union[th.device, str] = "auto",
         _init_setup_model: bool = True,
+        mpc=None,
     ):
         super().__init__(
             policy,
